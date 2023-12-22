@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+
 
 
 namespace Game
@@ -27,6 +31,7 @@ namespace Game
         }
     }
 
+
     class Program
     {
         
@@ -43,31 +48,82 @@ namespace Game
         private static double _playerX = 2;
         private static double _playerY = 2;
         private static double _playerA = 0;
-
+        private static bool OnFps;
+        private static bool OnMap ;
+        
         private static readonly StringBuilder Map = new StringBuilder();
 
         private static readonly char[] Screen = new char[ScreenWidth * ScreenHeight];
-
-        static async Task Main(string[] args)
+        
+        public static async Task Main(string[] args)
         {
+            Label:
             Console.Clear();
+            
             Console.WriteLine("=== Главное меню ===");
             Console.WriteLine("1. Новая игра");
             Console.WriteLine("2. Найстройки игры");
             Console.WriteLine("3. Выход");
             Console.WriteLine("====================");
             Console.Write("Введите номер действия: ");
+            
 
             string userInput = Console.ReadLine();
+            if (userInput == "2")
+            {
+                OnFps = true;
+                OnMap = true;
+                Console.Clear();
+            Label2:
+                Console.WriteLine("=== Опции ===");
+                Console.WriteLine("1. включить | выключить отображение карты");
+                Console.WriteLine("2. Включить|выключить отображение фпс");
+                Console.WriteLine("3. Назад");
+                Console.WriteLine("==============");
+                Console.Write("Введите номер действия: ");
+
+                string userInputOption = Console.ReadLine();
+
+                switch (userInputOption)
+                {
+                    case "1":
+                        
+                        OnMap = false;
+                        goto Label2;
+                        // Ваш код для изменения настроек звука
+                        break;
+                    case "2":
+                        
+                        OnFps = false;
+                        goto Label2;
+                        // Ваш код для изменения языка
+                        break;
+                    case "3":
+                        goto Label;
+                        break;
+                    default:
+                        Console.WriteLine("Неверный номер действия");
+                        break;
+                }
+
+                Console.WriteLine("Нажмите любую клавишу для продолжения...");
+                Console.ReadKey();
+
+
+
+            }
+
             if (userInput == "1")
             {
                 Console.SetWindowSize(ScreenWidth, ScreenHeight);
                 Console.SetBufferSize(ScreenWidth, ScreenHeight);
                 Console.CursorVisible = false;
 
+
                 InitMap();
 
                 DateTime dateTimeFrom = DateTime.Now;
+                 
 
 
 
@@ -117,11 +173,15 @@ namespace Game
                                         _playerY += Math.Cos(_playerA) * 10 * elapsedTime;
                                     }
                                     break;
+
                                 }
 
-
+                                 
                         }
-                        InitMap();
+                      
+                            InitMap();
+                        
+                        
                     }
                     //Ray casting
 
@@ -145,32 +205,56 @@ namespace Game
 
 
                     }
-                    //stats
-                    char[] stats = $"X: {_playerX}, Y: {_playerY}, A: {_playerA}, FPS: {(int)(1 / elapsedTime)}"
-                        .ToCharArray();
-                    stats.CopyTo(array: Screen, index: 0);
-
-                    //map
-                    for (int x = 0; x < MapWidth; x++)
+                    //Статс
+                    if (OnFps == true)
                     {
-                        for (int y = 0; y < MapHeight; y++)
-                        {
-                            Screen[(y + 1) * ScreenWidth + x] = Map[y * MapWidth + x];
-                        }
+                        Debug.WriteLine(OnFps);
+                        char[] stats = $"X: {_playerX}, Y: {_playerY}, A: {_playerA}, FPS: {(int)(1 / elapsedTime)}"
+                       .ToCharArray();
+                        stats.CopyTo(array: Screen, index: 0);
                     }
 
-                    //player
+
+                    //map
+                    if (OnMap == true)
+                    {
+                        for (int x = 0; x < MapWidth; x++)
+                        {
+                            for (int y = 0; y < MapHeight; y++)
+                            {
+                                Screen[(y + 1) * ScreenWidth + x] = Map[y * MapWidth + x];
+                            }
+                        }
+                        //player
+                        
+
+                    }
                     Screen[(int)(_playerY + 1) * ScreenWidth + (int)_playerX] = 'C';
                     Console.SetCursorPosition(left: 0, top: 0);
                     Console.Write(buffer: Screen);
 
 
                 }
+
+                
+            }
+
+           
+            
+
+            if (userInput == "3")
+            {
+                Console.WriteLine("Выход из игры");
+                Environment.Exit(0);
             }
 
 
 
+
             }
+
+        
+      
 
         public static Dictionary<int, char> CastRay(int x)
         {
@@ -298,17 +382,18 @@ namespace Game
             return result;
 
         }
+
         private static void InitMap()
         {
             Map.Clear();
             Map.Append("################################");
             Map.Append("...............................#");
-            Map.Append("...##.#############...##########");
-            Map.Append("#.....#...........#.#...#.....##");
-            Map.Append("#.###############.#.#.###.###.##");
-            Map.Append("#......#.......#.#.#...#.....###");
-            Map.Append("###.###.###.###.#.#.############");
-            Map.Append("#...#.......#.....#.....#....###");
+            Map.Append("......#############...##########");
+            Map.Append("#.....#.................#.....##");
+            Map.Append("#....############.....###.###.##");
+            Map.Append("#......#.......#.......#.....###");
+            Map.Append("##########..###.#...############");
+            Map.Append("#...#.......................###");
             Map.Append("#.###.###.#############.#...#.##");
             Map.Append("#.#...#...#.#...#.....#....#...#");
             Map.Append("#.#####.###.#.#.#####.#....#.#.#");
@@ -331,9 +416,9 @@ namespace Game
             Map.Append("#.#.........#.............#...##");
             Map.Append("#.#########.#########.###.###.##");
             Map.Append("#...........#..................#");
-            Map.Append("################################");
-            Map.Append("################################");
-            Map.Append("################################");
+            Map.Append("#######..#################..####");
+            Map.Append("###......#################..####");
+            Map.Append("#####................#####......");
 
 
         }
